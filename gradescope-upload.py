@@ -129,14 +129,10 @@ def create_outline(bounding_boxes):
         },
         "question_data": [
             {
-                "crop_rect_list": [
-                ],
                 "title": "MCQ",
                 "weight": 5
             },
             {
-                "crop_rect_list": [
-                ],
                 "title": "MA",
                 "weight": 5
             }
@@ -145,7 +141,6 @@ def create_outline(bounding_boxes):
 
     for (index, box) in bounding_boxes.items():
         outline['question_data'][index]['crop_rect_list'] = [box]
-        pass
 
     return outline
 
