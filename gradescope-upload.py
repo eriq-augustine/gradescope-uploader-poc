@@ -26,6 +26,8 @@ COMPILE_SCRIPT = 'compile-latex.sh'
 
 SP_PER_PT = 65536
 
+GRADESCOPE_SLEEP_TIME_SEC = 0.5
+
 def main():
     email, password = load_secrets()
 
@@ -150,11 +152,18 @@ def upload(email, password, bounding_boxes):
 
     session = requests.Session()
 
+    login(session, email, password)
+
+    csrf_token = get_csrf_token(session)
+
+    submit_outline(session, csrf_token, outline)
+
+def login(session, email, password):
     # Get login auth token.
     response = session.get(URL_BASE)
     response.raise_for_status()
     print("Got login page.")
-    time.sleep(0.5)
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
 
     document = bs4.BeautifulSoup(response.text, 'html.parser')
 
@@ -179,13 +188,14 @@ def upload(email, password, bounding_boxes):
     response = session.post(URL_LOGIN, params = data)
     response.raise_for_status()
     print("Logged in.")
-    time.sleep(0.5)
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
 
+def get_csrf_token(session):
     # Get outline submission csrf token.
     response = session.get(URL_EDIT_OUTLINE)
     response.raise_for_status()
     print("Got outline edit page.")
-    time.sleep(0.5)
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
 
     document = bs4.BeautifulSoup(response.text, 'html.parser')
 
@@ -194,9 +204,12 @@ def upload(email, password, bounding_boxes):
         raise ValueError("Did not find exactly one CSRF meta tag, found %d." % (len(meta_tag)))
     meta_tag = meta_tag[0]
 
+    return meta_tag.get('content')
+
+def submit_outline(session, csrf_token, outline):
     headers = {
         'Content-Type': 'application/json',
-        'x-csrf-token': meta_tag.get('content'),
+        'x-csrf-token': csrf_token,
     }
 
     response = session.patch(URL_PATCH_OUTLINE,
@@ -205,7 +218,6 @@ def upload(email, password, bounding_boxes):
     )
     response.raise_for_status()
     print("Submitted outline.")
-    # time.sleep(0.5)
 
 if (__name__ == '__main__'):
     main()
