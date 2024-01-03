@@ -2,20 +2,19 @@
 
 import json
 import os
+import re
 import subprocess
 import time
 
 import bs4
 import requests
 
-# TEST - IDS
-COURSE_ID = '672346'
-ASSIGNMENT_ID = '3847684'
-
-URL_BASE = 'https://www.gradescope.com'
+URL_HOMEPAGE = 'https://www.gradescope.com'
 URL_LOGIN = 'https://www.gradescope.com/login'
-URL_EDIT_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline/edit' % (COURSE_ID, ASSIGNMENT_ID)
-URL_PATCH_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline' % (COURSE_ID, ASSIGNMENT_ID)
+URL_CREATE_ASSIGNMENT = 'https://www.gradescope.com/courses/%s/assignments'
+URL_NEW_ASSIGNMENT_FORM = 'https://www.gradescope.com/courses/%s/assignments/new'
+URL_EDIT_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline/edit'
+URL_PATCH_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline'
 
 SECRETS_PATH = 'secrets.json'
 QUIZ_TEX_PATH = 'quiz.tex'
@@ -31,10 +30,14 @@ GRADESCOPE_SLEEP_TIME_SEC = 0.5
 def main():
     email, password = load_secrets()
 
+    # TEST
+    course_id = '672346'
+    assignment_name = 'Test - Upload'
+
     compile_tex()
 
     boxes = get_bounding_boxes()
-    upload(email, password, boxes)
+    upload(course_id, assignment_name, email, password, boxes)
 
 def load_secrets():
     if (not os.path.isfile(SECRETS_PATH)):
@@ -146,33 +149,23 @@ def create_outline(bounding_boxes):
 
     return outline
 
-def upload(email, password, bounding_boxes):
+def upload(course_id, assignment_name, email, password, bounding_boxes):
     outline = create_outline(bounding_boxes)
     print(json.dumps(outline, indent = 4))
 
     session = requests.Session()
 
     login(session, email, password)
+    print("Logged in.")
 
-    csrf_token = get_csrf_token(session)
+    assignment_id = create_assignment(session, course_id, assignment_name)
+    print('Created assignment: ', assignment_id)
 
-    submit_outline(session, csrf_token, outline)
+    submit_outline(session, course_id, assignment_id, outline)
+    print("Submitted outline.")
 
 def login(session, email, password):
-    # Get login auth token.
-    response = session.get(URL_BASE)
-    response.raise_for_status()
-    print("Got login page.")
-    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
-
-    document = bs4.BeautifulSoup(response.text, 'html.parser')
-
-    auth_input = document.select('form[action="/login"] input[name="authenticity_token"]')
-    if (len(auth_input) != 1):
-        raise ValueError("Did not find exactly one authentication token input, found %d." % (len(auth_input)))
-    auth_input = auth_input[0]
-
-    token = auth_input.get('value')
+    token = get_authenticity_token(session, URL_HOMEPAGE, action = '/login')
 
     data = {
         "utf8": "✓",
@@ -187,14 +180,30 @@ def login(session, email, password):
     # Login.
     response = session.post(URL_LOGIN, params = data)
     response.raise_for_status()
-    print("Logged in.")
     time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
 
-def get_csrf_token(session):
-    # Get outline submission csrf token.
-    response = session.get(URL_EDIT_OUTLINE)
+def get_authenticity_token(session, url, action = None):
+    response = session.get(url)
     response.raise_for_status()
-    print("Got outline edit page.")
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
+
+    document = bs4.BeautifulSoup(response.text, 'html.parser')
+
+    form_selector = 'form'
+    if (action is not None):
+        form_selector = 'form[action="%s"]' % (action)
+
+    auth_input = document.select('%s input[name="authenticity_token"]' % (form_selector))
+    if (len(auth_input) != 1):
+        raise ValueError("Did not find exactly one authentication token input, found %d." % (len(auth_input)))
+    auth_input = auth_input[0]
+
+    return auth_input.get('value')
+
+def get_csrf_token(session, url):
+    # Get outline submission csrf token.
+    response = session.get(url)
+    response.raise_for_status()
     time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
 
     document = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -206,18 +215,57 @@ def get_csrf_token(session):
 
     return meta_tag.get('content')
 
-def submit_outline(session, csrf_token, outline):
+def create_assignment(session, course_id, assignment_name):
+    form_url = URL_NEW_ASSIGNMENT_FORM % (course_id)
+    create_url = URL_CREATE_ASSIGNMENT % (course_id)
+
+    token = get_csrf_token(session, form_url)
+
+    data = {
+        'authenticity_token': token,
+        'assignment[title]': assignment_name,
+        'assignment[submissions_anonymized]': 0,
+        'assignment[student_submission]': "false",
+        'assignment[when_to_create_rubric]': 'while_grading',
+    }
+
+    files = {
+        'template_pdf': (
+            os.path.basename(QUIZ_PDF_PATH),
+            open(QUIZ_PDF_PATH, 'rb')
+        ),
+    }
+
+    response = session.post(create_url, data = data, files = files)
+    response.raise_for_status()
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
+
+    if (len(response.history) == 0):
+        raise ValueError("Failed to create assignment. Is the name ('%s') unique?" % (assignment_name))
+
+    match = re.search(r'/assignments/(\d+)/outline/edit', response.history[0].text)
+    if (match is None):
+        print("--- Create Body ---\n%s\n------" % response.history[0].text)
+        raise ValueError("Could not parse assignment ID from response body.")
+
+    return match.group(1)
+
+def submit_outline(session, course_id, assignment_id, outline):
+    edit_url = URL_EDIT_OUTLINE % (course_id, assignment_id)
+    patch_outline_url = URL_PATCH_OUTLINE % (course_id, assignment_id)
+
+    csrf_token = get_csrf_token(session, edit_url)
+
     headers = {
         'Content-Type': 'application/json',
         'x-csrf-token': csrf_token,
     }
 
-    response = session.patch(URL_PATCH_OUTLINE,
+    response = session.patch(patch_outline_url,
         data = json.dumps(outline, separators = (',', ':')),
         headers = headers,
     )
     response.raise_for_status()
-    print("Submitted outline.")
 
 if (__name__ == '__main__'):
     main()
