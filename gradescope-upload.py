@@ -94,7 +94,8 @@ def get_bounding_boxes():
             # Origin is upper-left, point 1 is upper-left, point 2 is lower-right.
             x1 = round(100.0 * (ll_x / page_width), 1)
             y1 = round(100.0 * (1.0 - (ur_y / page_height)), 1)
-            x2 = round(100.0 * (ur_x / page_width), 1)
+            # The lower right x should always extend (at least) to the end of the page (to capture the answers).
+            x2 = round(max(95.0, 100.0 * (ur_x / page_width), 1))
             y2 = round(100.0 * (1.0 - (ll_y / page_height)), 1)
 
             # If there is an existing box, extend it.
