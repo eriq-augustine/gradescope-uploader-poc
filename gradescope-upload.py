@@ -25,12 +25,56 @@ COMPILE_SCRIPT = 'compile-latex.sh'
 
 SP_PER_PT = 65536
 
-GRADESCOPE_SLEEP_TIME_SEC = 0.5
+GRADESCOPE_SLEEP_TIME_SEC = 0.75
+
+# TODO: Get from quiz config.
+QUESTIONS = [
+    {
+        "name": "Regular Expression in Programming Languages",
+        "points": 5,
+    },
+    {
+        "name": "Regular Expression Vocabulary",
+        "points": 20,
+    },
+    {
+        "name": "Basic Regular Expressions",
+        "points": 5,
+    },
+    {
+        "name": "Passage",
+        "points": 0,
+    },
+    {
+        "name": "Passage Search",
+        "points": 10,
+    },
+    {
+        "name": "Quantifiers",
+        "points": 5,
+    },
+    {
+        "name": "General Quantification",
+        "points": 5,
+    },
+    {
+        "name": "Backreference Matching",
+        "points": 10,
+    },
+    {
+        "name": "Regex Golf",
+        "points": 20,
+    },
+    {
+        "name": "Write a Function",
+        "points": 20,
+    }
+]
 
 def main():
     email, password = load_secrets()
 
-    # TEST
+    # TODO: Get from config / args.
     course_id = '672346'
     assignment_name = 'Test - Upload'
 
@@ -80,6 +124,9 @@ def get_bounding_boxes():
             index = int(index)
             page_number = int(page_number)
 
+            if (index not in range(len(QUESTIONS))):
+                raise ValueError("Index from position file (%d) not in question index range." % (index))
+
             if (content_type not in ['mcq', 'ma']):
                 raise ValueError("Unknown content type: '%s'." % (content_type))
 
@@ -126,27 +173,25 @@ def get_bounding_boxes():
     return boxes
 
 def create_outline(bounding_boxes):
+    question_data = []
+    for (index, box) in bounding_boxes.items():
+        question_data.append({
+            'title': QUESTIONS[index]['name'],
+            'weight': QUESTIONS[index]['points'],
+            'crop_rect_list': [
+                box
+            ]
+        })
+
     outline = {
-        "assignment": {
-            "identification_regions": {
-                "name": None,
-                "sid": None
+        'assignment': {
+            'identification_regions': {
+                'name': None,
+                'sid': None
             }
         },
-        "question_data": [
-            {
-                "title": "MCQ",
-                "weight": 5
-            },
-            {
-                "title": "MA",
-                "weight": 5
-            }
-        ]
+        'question_data': question_data,
     }
-
-    for (index, box) in bounding_boxes.items():
-        outline['question_data'][index]['crop_rect_list'] = [box]
 
     return outline
 
@@ -157,25 +202,25 @@ def upload(course_id, assignment_name, email, password, bounding_boxes):
     session = requests.Session()
 
     login(session, email, password)
-    print("Logged in.")
+    print('Logged in.')
 
     assignment_id = create_assignment(session, course_id, assignment_name)
     print('Created assignment: ', assignment_id)
 
     submit_outline(session, course_id, assignment_id, outline)
-    print("Submitted outline.")
+    print('Submitted outline.')
 
 def login(session, email, password):
     token = get_authenticity_token(session, URL_HOMEPAGE, action = '/login')
 
     data = {
-        "utf8": "✓",
-        "session[email]": email,
-        "session[password]": password,
-        "session[remember_me]": 0,
-        "commit": "Log+In",
-        "session[remember_me_sso]": 0,
-        "authenticity_token": token,
+        'utf8': '✓',
+        'session[email]': email,
+        'session[password]': password,
+        'session[remember_me]': 0,
+        'commit': 'Log+In',
+        'session[remember_me_sso]': 0,
+        'authenticity_token': token,
     }
 
     # Login.

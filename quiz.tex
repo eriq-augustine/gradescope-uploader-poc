@@ -119,7 +119,8 @@ I acknowledge that I have neither given nor received inappropriate help on this 
 
 \newpage
 
-\vspace{2cm}
+%%% BEGIN Question {1 -- Regular Expression in Programming Languages} %%%
+% Question Type: True / False
 
 \begin{minipage}{\textwidth}
     \noindent
@@ -127,22 +128,214 @@ I acknowledge that I have neither given nor received inappropriate help on this 
     \vspace{0.5cm}
 
     \noindent
+    Regular expressions are implemented as either a core feature or in the standard library of almost every major programming language.
+
+    \vspace{0.5cm}
+
+    \begin{tabular}{ m{10mm} l }
+        \mcqCheckbox{0}{0} & True \\
+        \mcqCheckbox{0}{1} & False \\
+    \end{tabular}
+\end{minipage}
+
+%%% END Question {1 -- Regular Expression in Programming Languages} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {2 -- Regular Expression Vocabulary} %%%
+% Question Typr: Matching
+% TODO
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 2 (20 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    Match the following terms to their corresponding definitions.
+
+    \vspace{0.5cm}
+
+    % TEST
+    \begin{center}
+        \begin{tabular}{ l c l }
+
+            \vspace{0.2cm}
+
+            \underline{\hspace{1cm}} Character Class & \hspace{0.5cm} & A. A set of character where any single member of the group can be matched. \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Anchor & \hspace{0.5cm} & B. A special character that can be used to match the beginning or end of a line. \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Word Boundary & \hspace{0.5cm} & C. The empty string between (\verb|[\W^]| and \verb|\w|) or between (\verb|\w| and \verb|[\W$]|). \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Kleene Star & \hspace{0.5cm} & D. A repetition operator that matches the range $ [0, infinity] $. \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Group & \hspace{0.5cm} & E. A collection of character that can be treated as a single unit. \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Disjunction & \hspace{0.5cm} & F. An operator that allows us to select one of two options. \\
+            \vspace{0.2cm}
+            \underline{\hspace{1cm}} Back Reference & \hspace{0.5cm} & G. A special character that allows us to invoke a previous group. \\
+            \vspace{0.2cm}
+            & \hspace{0.5cm} & H. The set of all alphanumeric characters and underscore. \\
+            \vspace{0.2cm}
+            & \hspace{0.5cm} & I. All digits. \\
+            \vspace{0.2cm}
+            & \hspace{0.5cm} & J. A repetition operator that matches the range $ [1, infinity] $. \\
+            \vspace{0.2cm}
+            & \hspace{0.5cm} & K. An operator that allows us to select both of two options. \\
+            \vspace{0.2cm}
+
+        \end{tabular}
+    \end{center}
+
+\end{minipage}
+
+%%% END Question {2 -- Regular Expression Vocabulary} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {3 -- Basic Regular Expressions} %%%
+% Question Type: MCQ
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 3 (5 Points)
+    \vspace{0.5cm}
+
+    \noindent
     Which of the following regular expressions would be best to match a 10-digit phone number formatted as: '123 456-7890'. (Assume any stretch of continuous whitespace is a single space character.)
     \vspace{0.5cm}
 
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{0}{0} & \verb|r'\d{3} \d{3}-\d{4}'| \\
-        \mcqCheckbox{0}{1} & \verb|r'\d{10}'| \\
-        \mcqCheckbox{0}{2} & \verb|r'\d* \d*-\d*'| \\
-        \mcqCheckbox{0}{3} & \verb|r'\d+ \d+-\d+'| \\
+        \mcqCheckbox{2}{0} & \verb|r'\d{3} \d{3}-\d{4}'| \\
+        \mcqCheckbox{2}{1} & \verb|r'\d{10}'| \\
+        \mcqCheckbox{2}{2} & \verb|r'\d* \d*-\d*'| \\
+        \mcqCheckbox{2}{3} & \verb|r'\d+ \d+-\d+'| \\
     \end{tabular}
 \end{minipage}
 
+%%% END Question {3 -- Basic Regular Expressions} %%%
+
 \vspace{2cm}
+
+%%% BEGIN Question {4 -- Passage} %%%
+% Question Type: Text-Only
 
 \begin{minipage}{\textwidth}
     \noindent
-    Question 2 (5 Points)
+    Question 4 (0 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    Below is the opening paragraph (which is actually just one sentence) from
+    \textit{A Tale Of Two Cities} written by Charles Dickens.
+    Future questions may reference this passage as "the provided passage".
+    \newline
+
+
+    "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness,
+    it was the epoch of belief, it was the epoch of incredulity, it was the season of Light,
+    it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us,
+    we had nothing before us, we were all going direct to Heaven, we were all going direct the other way
+    — in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received,
+    for good or for evil, in the superlative degree of comparison only."
+
+\end{minipage}
+
+%%% END Question {4 -- Passage} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {5 -- Passage Search} %%%
+% Question Type: Numerical
+% TODO
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 5 (10 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    In the provided passage, how many non-specific time periods are mentioned,
+    i.e., how many matches are there for the following regular expression:
+
+    \vspace{0.5cm}
+
+    \begin{lstlisting}
+r'(age|season|epoch)\s+of\s+(\w+)'
+    \end{lstlisting}
+
+    \vspace{0.5cm}
+
+    % TEST - TODO: Box
+
+\end{minipage}
+
+%%% END Question {5 -- Passage Search} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {6 -- Quantifiers} %%%
+% Question Type: Multiple Drop Downs
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 6 (5 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    For each scenario, select the quantifier that is most appropriate. \newline
+
+
+    You want to match the leading zeros for some number. E.g., "00" for "005". \newline
+    \textsc{<PART1>} \newline
+
+
+    You want to match the negative sign for some number. E.g., "-" for "-9". \newline
+    \textsc{<PART2>} \newline
+
+
+    You want to match the main digits (before any decimal point) for a required number. E.g. "123" for "123". \newline
+    \textsc{<PART3>} \newline
+
+    \vspace{0.5cm}
+
+    \noindent
+    PART1: \newline
+    \begin{tabular}{ m{10mm} l }
+        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
+        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
+        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+    \end{tabular}
+
+    \noindent
+    PART2: \newline
+    \begin{tabular}{ m{10mm} l }
+        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
+        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
+        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+    \end{tabular}
+
+    \noindent
+    PART3: \newline
+    \begin{tabular}{ m{10mm} l }
+        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
+        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
+        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+    \end{tabular}
+
+\end{minipage}
+
+%%% END Question {6 -- Quantifiers} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {7 -- General Quantification} %%%
+% Question Type: MA
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 7 (5 Points)
     \vspace{0.5cm}
 
     \noindent
@@ -150,11 +343,154 @@ I acknowledge that I have neither given nor received inappropriate help on this 
     \vspace{0.5cm}
 
     \begin{tabular}{ m{10mm} l }
-        \maCheckbox{1}{0} & Long Cat \\
-        \maCheckbox{1}{1} & Loong Cat \\
-        \maCheckbox{1}{2} & Looong Cat \\
-        \maCheckbox{1}{3} & Loooong Cat \\
+        \maCheckbox{6}{0} & Long Cat \\
+        \maCheckbox{6}{1} & Loong Cat \\
+        \maCheckbox{6}{2} & Looong Cat \\
+        \maCheckbox{6}{3} & Loooong Cat \\
     \end{tabular}
 \end{minipage}
+
+%%% END Question {7 -- General Quantification} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {8 -- Backreference Matching} %%%
+% Question Type: Fill in Multiple Blanks
+% TODO
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 8 (10 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    Suppose that we are trying to write a script extract name information from text and put it into a CSV (comma-separated value) file.
+    The order of the columns in our CSV file are: first name, last name, and title.
+    As part of our script, we have a regular expression that looks for people that have their name's written as "last, first".
+
+    \begin{lstlisting}
+import re
+
+def create_csv_line(text_line):
+    regex = r'^\s*((Dr).?)?\s*([^,]+)\s*,\s*(.+)\s*$'
+    replacement = MY_REPLACEMENT_STRING
+
+    return re.sub(regex, replacement, text_line)
+    \end{lstlisting}
+
+    Fill in the blanks in \verb|MY_REPLACEMENT_STRING| to make the above code work correctly.
+
+    \verb|MY_REPLACEMENT_STRING = r'|\textsc{<BLANK1>}\verb|,|\textsc{<BLANK2>}\verb|,|\textsc{<BLANK3>}\verb|'|
+
+    \vspace{0.5cm}
+
+    % TEST
+    BLANK1: \underline{\hspace{1cm}}
+
+    % TEST
+    BLANK2: \underline{\hspace{1cm}}
+
+    % TEST
+    BLANK3: \underline{\hspace{1cm}}
+
+\end{minipage}
+
+%%% END Question {8 -- Backreference Matching} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {9 -- Regex Golf} %%%
+% Question Type: Short Answer
+% TODO
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 9 (20 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    Create a regular expression that matches successfully completes a game a golf with the table below.
+
+    Specifics:
+    \begin{itemize}
+        \item Match all values in the \verb|Match| column.
+        \item Do not match any values in the \verb|No Match| column.
+        \item Write you regex as a raw string using a single or double quotes (not triple quotes).
+        \item Treat the contents of each table cell as a string (so you do not have the match the quotes).
+        \item You may assume that any contiguous whitespace is a single space character.
+        \item You only need to match (or not match) the values in the table, you do not need to extend this pattern to unseen values.
+    \end{itemize}
+
+
+    \begin{center}
+        \begin{tabular}{ cc }
+            Match & No Match \\
+            \hline \\
+            \verb|'12:00 AM'| & \verb|'00:00'| \\
+            \verb|'05:30 PM'| & \verb|'17:30'| \\
+            \verb|'01:45 AM'| & \verb|'01:65 AM'| \\
+            \verb|'10:10 PM'| & \verb|'10:10 ZZ'| \\
+            \verb|'12:34 PM'| & \verb|'12:34 pm'| \\
+            \verb|'11:59 PM'| & \verb|'23:59'| \\
+            & \verb|'123:45 AM'| \\
+            & \verb|'12:345 PM'| \\
+        \end{tabular}
+    \end{center}
+
+    \vspace{0.5cm}
+
+    % TEST
+    \vspace{3cm}
+
+\end{minipage}
+
+%%% END Question {9 -- Regex Golf} %%%
+
+\vspace{2cm}
+
+%%% BEGIN Question {10 -- Write a Function} %%%
+% Question Type: Essay
+% TODO
+
+\begin{minipage}{\textwidth}
+    \noindent
+    Question 10 (20 Points)
+    \vspace{0.5cm}
+
+    \noindent
+    Implement a function with the following signature and description:
+
+    \begin{lstlisting}
+import re
+
+def compute(text):
+    """
+    Compute the result of the binary expression represented in the |text| variable.
+    The possible operators are: "+", "-", "*", and "/".
+    Operands may be any real number.
+    The the operation is division, the RHS (denominator) will not be zero.
+    """
+
+    return NotImplemented
+    \end{lstlisting}
+
+    Specifics:
+    \begin{itemize}
+        \item Your function must use regular expressions.
+        \item You may not use \verb|eval()| or any other Python ast functionality.
+        \item You may only import modules from the Python standard library.
+        \item You should return a float that is the result of the binary operation represented by \verb|text|.
+        \item The operator will be one of:  $ \{+, -, *, /\} $.
+        \item Operands may be any real number.
+    \end{itemize}
+
+    \vspace{0.5cm}
+
+    % TEST
+    \vspace{10cm}
+
+\end{minipage}
+
+%%% END Question {10 -- Write a Function} %%%
 
 \end{document}
