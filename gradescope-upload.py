@@ -102,6 +102,7 @@ def compile_tex():
         raise ValueError("Quiz did not compile. Stdout: '%s', Stderr: '%s'" % (result.stdout, result.stderr))
 
 def get_bounding_boxes():
+    # {<quetion id>: {<part id>: box, ...}, ...}
     boxes = {}
 
     with open(POS_PATH, 'r') as file:
@@ -111,24 +112,27 @@ def get_bounding_boxes():
                 continue
 
             parts = [part.strip() for part in line.split(',')]
-            if (len(parts) != 11):
+            if (len(parts) != 12):
                 raise ValueError("Position file has row with bad number of parts. Expecting 11, found %d." % (len(parts)))
 
             # "ll" == "lower-left"
             # "ur" == "upper-right"
-            (index, subid, content_type, page_number, ll_x, ll_y, ur_x, ur_y, page_width, page_height, origin) = parts
+            (question_index, part_id, answer_id, question_type, page_number, ll_x, ll_y, ur_x, ur_y, page_width, page_height, origin) = parts
 
             if (origin != 'bottom-left'):
                 raise ValueError("Unknown bounding box origin: '%s'." % (origin))
 
-            index = int(index)
+            question_index = int(question_index)
             page_number = int(page_number)
 
-            if (index not in range(len(QUESTIONS))):
-                raise ValueError("Index from position file (%d) not in question index range." % (index))
+            if (question_index not in range(len(QUESTIONS))):
+                raise ValueError("Index from position file (%d) not in question question_index range." % (question_index))
 
-            if (content_type not in ['mcq', 'ma']):
-                raise ValueError("Unknown content type: '%s'." % (content_type))
+            if (question_type not in ['mcq', 'ma', 'mdd']):
+                raise ValueError("Unknown content type: '%s'." % (question_type))
+
+            if (question_index not in boxes):
+                boxes[question_index] = {}
 
             ll_x = float(ll_x.removesuffix('sp'))
             ll_y = float(ll_y.removesuffix('sp'))
@@ -146,22 +150,24 @@ def get_bounding_boxes():
             y2 = round(100.0 * (1.0 - (ll_y / page_height)), 1)
 
             # If there is an existing box, extend it.
-            if (index in boxes):
-                old_x1 = boxes[index]['x1']
-                old_y1 = boxes[index]['y1']
-                old_x2 = boxes[index]['x2']
-                old_y2 = boxes[index]['y2']
+            if (part_id in boxes[question_index]):
+                old_box = boxes[question_index][part_id]
 
-                old_page = boxes[index]['page_number']
+                old_x1 = old_box['x1']
+                old_y1 = old_box['y1']
+                old_x2 = old_box['x2']
+                old_y2 = old_box['y2']
+
+                old_page = old_box['page_number']
                 if (old_page != page_number):
-                    raise ValueError("Question %d has bounding boxes that span pages." % (index))
+                    raise ValueError("Question %d has bounding boxes that span pages." % (question_index))
 
                 x1 = min(x1, old_x1)
                 y1 = min(y1, old_y1)
                 x2 = max(x2, old_x2)
                 y2 = max(y2, old_y2)
 
-            boxes[index] = {
+            boxes[question_index][part_id] = {
                 # Note that the position file and GradeScope use 1-indexed pages.
                 'page_number': page_number,
                 'x1': x1,
@@ -174,14 +180,30 @@ def get_bounding_boxes():
 
 def create_outline(bounding_boxes):
     question_data = []
-    for (index, box) in bounding_boxes.items():
-        question_data.append({
-            'title': QUESTIONS[index]['name'],
-            'weight': QUESTIONS[index]['points'],
-            'crop_rect_list': [
-                box
-            ]
-        })
+    for (question_index, parts) in bounding_boxes.items():
+        if (len(parts) == 1):
+            # Single-part question.
+            question_data.append({
+                'title': QUESTIONS[question_index]['name'],
+                'weight': QUESTIONS[question_index]['points'],
+                'crop_rect_list': list(parts.values()),
+            })
+        else:
+            # Multi-part question.
+            children = []
+            for (part_id, box) in parts.items():
+                children.append({
+                    'title': "%s - %s" % (QUESTIONS[question_index]['name'], part_id),
+                    'weight': round(QUESTIONS[question_index]['points'] / len(parts), 2),
+                    'crop_rect_list': [box],
+                })
+
+            question_data.append({
+                'title': QUESTIONS[question_index]['name'],
+                'weight': QUESTIONS[question_index]['points'],
+                'crop_rect_list': [],
+                'children': children,
+            })
 
     outline = {
         'assignment': {

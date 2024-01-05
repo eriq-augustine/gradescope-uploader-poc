@@ -26,42 +26,44 @@
 \usetikzlibrary{calc}
 
 % Make a checkbox for multiple choice questions and record the bounding boxes to the positions file.
-\newcommand{\mcqCheckbox}[2]{%
+% Args: {type identifier}[question id][part id][answer id]
+\newcommand{\mcqCheckbox}[4][mcq]{%
     \begin{tikzpicture}[color=black, line width=0.2mm]
         \fill[transparent] (0mm,0mm)
-            node {\zsavepos{#1-#2-ll}}
+            node {\zsavepos{#2-#3-#4-ll}}
             rectangle (6mm,6mm)
-            node {\zsavepos{#1-#2-ur}};
+            node {\zsavepos{#2-#3-#4-ur}};
         \draw (3mm,3mm)
             circle (2.5mm);
     \end{tikzpicture} %
     \write\positionOutput{%
-        #1,#2,%
-        mcq,%
+        #2,#3,#4,%
+        #1,%
         \arabic{abspage},%
-        \zposx{#1-#2-ll}sp,\zposy{#1-#2-ll}sp,%
-        \zposx{#1-#2-ur}sp,\zposy{#1-#2-ur}sp,%
+        \zposx{#2-#3-#4-ll}sp,\zposy{#2-#3-#4-ll}sp,%
+        \zposx{#2-#3-#4-ur}sp,\zposy{#2-#3-#4-ur}sp,%
         \the\paperwidth,\the\paperheight,%
         bottom-left%
     } \relax %
 }
 
 % Make a checkbox for multiple answer questions and record the bounding boxes to the positions file.
-\newcommand{\maCheckbox}[2]{%
+% Args: {type identifier}[question id][part id][answer id]
+\newcommand{\maCheckbox}[4][ma]{%
     \begin{tikzpicture}[color=black, line width=0.2mm]
         \fill[transparent] (0mm,0mm)
-            node {\zsavepos{#1-#2-ll}}
+            node {\zsavepos{#2-#3-#4-ll}}
             rectangle (6mm,6mm)
-            node {\zsavepos{#1-#2-ur}};
+            node {\zsavepos{#2-#3-#4-ur}};
         \draw (0.5mm,0.5mm)
             rectangle (5.5mm,5.5mm);
     \end{tikzpicture} %
     \write\positionOutput{%
-        #1,#2,%
-        ma,%
+        #2,#3,#4,%
+        #1,%
         \arabic{abspage},%
-        \zposx{#1-#2-ll}sp,\zposy{#1-#2-ll}sp,%
-        \zposx{#1-#2-ur}sp,\zposy{#1-#2-ur}sp,%
+        \zposx{#2-#3-#4-ll}sp,\zposy{#2-#3-#4-ll}sp,%
+        \zposx{#2-#3-#4-ur}sp,\zposy{#2-#3-#4-ur}sp,%
         \the\paperwidth,\the\paperheight,%
         bottom-left%
     } \relax %
@@ -133,8 +135,8 @@ I acknowledge that I have neither given nor received inappropriate help on this 
     \vspace{0.5cm}
 
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{0}{0} & True \\
-        \mcqCheckbox{0}{1} & False \\
+        \mcqCheckbox{0}{0}{0} & True \\
+        \mcqCheckbox{0}{0}{1} & False \\
     \end{tabular}
 \end{minipage}
 
@@ -207,10 +209,10 @@ I acknowledge that I have neither given nor received inappropriate help on this 
     \vspace{0.5cm}
 
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{2}{0} & \verb|r'\d{3} \d{3}-\d{4}'| \\
-        \mcqCheckbox{2}{1} & \verb|r'\d{10}'| \\
-        \mcqCheckbox{2}{2} & \verb|r'\d* \d*-\d*'| \\
-        \mcqCheckbox{2}{3} & \verb|r'\d+ \d+-\d+'| \\
+        \mcqCheckbox{2}{0}{0} & \verb|r'\d{3} \d{3}-\d{4}'| \\
+        \mcqCheckbox{2}{0}{1} & \verb|r'\d{10}'| \\
+        \mcqCheckbox{2}{0}{2} & \verb|r'\d* \d*-\d*'| \\
+        \mcqCheckbox{2}{0}{3} & \verb|r'\d+ \d+-\d+'| \\
     \end{tabular}
 \end{minipage}
 
@@ -303,25 +305,25 @@ r'(age|season|epoch)\s+of\s+(\w+)'
     \noindent
     PART1: \newline
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
-        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
-        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+        \mcqCheckbox[mdd]{5}{PART1}{0} & \verb|?| \\
+        \mcqCheckbox[mdd]{5}{PART1}{1} & \verb|*| \\
+        \mcqCheckbox[mdd]{5}{PART1}{2} & \verb|+| \\
     \end{tabular}
 
     \noindent
     PART2: \newline
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
-        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
-        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+        \mcqCheckbox[mdd]{5}{PART2}{0} & \verb|?| \\
+        \mcqCheckbox[mdd]{5}{PART2}{1} & \verb|*| \\
+        \mcqCheckbox[mdd]{5}{PART2}{2} & \verb|+| \\
     \end{tabular}
 
     \noindent
     PART3: \newline
     \begin{tabular}{ m{10mm} l }
-        \mcqCheckbox{5}{PART1-0} & \verb|?| \\
-        \mcqCheckbox{5}{PART1-1} & \verb|*| \\
-        \mcqCheckbox{5}{PART1-2} & \verb|+| \\
+        \mcqCheckbox[mdd]{5}{PART3}{0} & \verb|?| \\
+        \mcqCheckbox[mdd]{5}{PART3}{1} & \verb|*| \\
+        \mcqCheckbox[mdd]{5}{PART3}{2} & \verb|+| \\
     \end{tabular}
 
 \end{minipage}
@@ -343,10 +345,10 @@ r'(age|season|epoch)\s+of\s+(\w+)'
     \vspace{0.5cm}
 
     \begin{tabular}{ m{10mm} l }
-        \maCheckbox{6}{0} & Long Cat \\
-        \maCheckbox{6}{1} & Loong Cat \\
-        \maCheckbox{6}{2} & Looong Cat \\
-        \maCheckbox{6}{3} & Loooong Cat \\
+        \maCheckbox{6}{0}{0} & Long Cat \\
+        \maCheckbox{6}{0}{1} & Loong Cat \\
+        \maCheckbox{6}{0}{2} & Looong Cat \\
+        \maCheckbox{6}{0}{3} & Loooong Cat \\
     \end{tabular}
 \end{minipage}
 
