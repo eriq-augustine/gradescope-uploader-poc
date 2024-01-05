@@ -11,7 +11,9 @@ import requests
 
 URL_HOMEPAGE = 'https://www.gradescope.com'
 URL_LOGIN = 'https://www.gradescope.com/login'
-URL_CREATE_ASSIGNMENT = 'https://www.gradescope.com/courses/%s/assignments'
+URL_ASSIGNMENTS = 'https://www.gradescope.com/courses/%s/assignments'
+URL_ASSIGNMENT = 'https://www.gradescope.com/courses/%s/assignments/%s'
+URL_ASSIGNMENT_EDIT = 'https://www.gradescope.com/courses/%s/assignments/%s/edit'
 URL_NEW_ASSIGNMENT_FORM = 'https://www.gradescope.com/courses/%s/assignments/new'
 URL_EDIT_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline/edit'
 URL_PATCH_OUTLINE = 'https://www.gradescope.com/courses/%s/assignments/%s/outline'
@@ -97,11 +99,12 @@ def main():
     # TODO: Get from config / args.
     course_id = '672346'
     assignment_name = 'Test - Upload'
+    force = True
 
     compile_tex()
 
     boxes, special_boxes = get_bounding_boxes()
-    upload(course_id, assignment_name, email, password, boxes, special_boxes)
+    upload(course_id, assignment_name, email, password, boxes, special_boxes, force = force)
 
 def load_secrets():
     if (not os.path.isfile(SECRETS_PATH)):
@@ -283,14 +286,25 @@ def create_outline(bounding_boxes, special_boxes):
 
     return outline
 
-def upload(course_id, assignment_name, email, password, bounding_boxes, special_boxes):
+def upload(course_id, assignment_name, email, password, bounding_boxes, special_boxes, force = False):
     outline = create_outline(bounding_boxes, special_boxes)
     print(json.dumps(outline, indent = 4))
+
+    assignment_name = assignment_name.strip()
 
     session = requests.Session()
 
     login(session, email, password)
     print('Logged in.')
+
+    assignment_id = get_assignment_id(session, course_id, assignment_name)
+    if (assignment_id is not None):
+        if (not force):
+            print("Assignment '%s' (%s) already exists. Skipping upload." % (assignment_name, assignment_id))
+            return
+
+        delete_assignment(session, course_id, assignment_id)
+        print('Deleted assignment: ', assignment_id)
 
     assignment_id = create_assignment(session, course_id, assignment_name)
     print('Created assignment: ', assignment_id)
@@ -349,9 +363,50 @@ def get_csrf_token(session, url):
 
     return meta_tag.get('content')
 
+def get_assignment_id(session, course_id, assignment_name):
+    url = URL_ASSIGNMENTS % (course_id)
+
+    response = session.get(url)
+    response.raise_for_status()
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
+
+    document = bs4.BeautifulSoup(response.text, 'html.parser')
+
+    nodes = document.select('div[data-react-class="AssignmentsTable"]')
+    if (len(nodes) != 1):
+        raise ValueError("Did not find exactly one assignments table, found %d." % (len(nodes)))
+
+    assignment_data = json.loads(nodes[0].get('data-react-props'))
+    for row in assignment_data['table_data']:
+        if (row['className'] != 'js-assignmentTableAssignmentRow'):
+            continue
+
+        id = row['id'].strip().removeprefix('assignment_')
+        name = row['title'].strip()
+
+        if (name == assignment_name):
+            return id
+
+    return None
+
+def delete_assignment(session, course_id, assignment_id):
+    form_url = URL_ASSIGNMENT_EDIT % (course_id, assignment_id)
+    delete_url = URL_ASSIGNMENT % (course_id, assignment_id)
+
+    token = get_csrf_token(session, form_url)
+
+    data = {
+        '_method': 'delete',
+        'authenticity_token': token,
+    }
+
+    response = session.post(delete_url, data = data)
+    response.raise_for_status()
+    time.sleep(GRADESCOPE_SLEEP_TIME_SEC)
+
 def create_assignment(session, course_id, assignment_name):
     form_url = URL_NEW_ASSIGNMENT_FORM % (course_id)
-    create_url = URL_CREATE_ASSIGNMENT % (course_id)
+    create_url = URL_ASSIGNMENTS % (course_id)
 
     token = get_csrf_token(session, form_url)
 
