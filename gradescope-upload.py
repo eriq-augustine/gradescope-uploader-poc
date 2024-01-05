@@ -24,21 +24,22 @@ POS_PATH = 'quiz.pos'
 NAME_BOX_ID = 'name'
 ID_BOX_ID = 'id'
 SIGNATURE_BOX_ID = 'signature'
-
-BOX_TYPES = [
-    'mcq',
-    'ma',
-    'mdd',
-    NAME_BOX_ID,
-    ID_BOX_ID,
-    SIGNATURE_BOX_ID,
-]
+MANUAL_GRADING_BOX_ID = 'manual_grading'
 
 EXTEND_BOX_QUESTION_TYPES = [
     'mcq',
     'ma',
     'mdd',
 ]
+
+SPECIAL_QUESTION_TYPES = [
+    NAME_BOX_ID,
+    ID_BOX_ID,
+    SIGNATURE_BOX_ID,
+    MANUAL_GRADING_BOX_ID,
+]
+
+BOX_TYPES = EXTEND_BOX_QUESTION_TYPES + SPECIAL_QUESTION_TYPES
 
 COMPILE_SCRIPT = 'compile-latex.sh'
 
@@ -155,7 +156,7 @@ def get_bounding_boxes():
 
             (x1, y1), (x2, y2) = _compute_box(ll_x, ll_y, ur_x, ur_y, page_width, page_height, extend_box_right = extend_box_right)
 
-            if (question_type in [NAME_BOX_ID, ID_BOX_ID, SIGNATURE_BOX_ID]):
+            if (question_type in SPECIAL_QUESTION_TYPES):
                 # These boxes are special.
                 if (question_type in special_boxes):
                     raise ValueError("Multiple %s bounding boxes found." % (question_type))
@@ -256,12 +257,19 @@ def create_outline(bounding_boxes, special_boxes):
             })
 
     name_box = None
-    if (NAME_BOX_ID in special_boxes):
-        name_box = special_boxes[NAME_BOX_ID]
-
     id_box = None
-    if (ID_BOX_ID in special_boxes):
-        id_box = special_boxes[ID_BOX_ID]
+
+    for (question_type, box) in special_boxes.items():
+        if (question_type == NAME_BOX_ID):
+            name_box = special_boxes[NAME_BOX_ID]
+        elif (question_type == ID_BOX_ID):
+            id_box = special_boxes[ID_BOX_ID]
+        else:
+            question_data.append({
+                'title': question_type,
+                'weight': 0,
+                'crop_rect_list': [box],
+            })
 
     outline = {
         'assignment': {
