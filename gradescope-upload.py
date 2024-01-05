@@ -201,7 +201,8 @@ def create_outline(bounding_boxes):
             question_data.append({
                 'title': QUESTIONS[question_index]['name'],
                 'weight': QUESTIONS[question_index]['points'],
-                'crop_rect_list': [],
+                # The top-level question just needs one of the bounding boxes.
+                'crop_rect_list': [list(parts.values())[0]],
                 'children': children,
             })
 
