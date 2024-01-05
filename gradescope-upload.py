@@ -21,6 +21,25 @@ QUIZ_TEX_PATH = 'quiz.tex'
 QUIZ_PDF_PATH = 'quiz.pdf'
 POS_PATH = 'quiz.pos'
 
+NAME_BOX_ID = 'name'
+ID_BOX_ID = 'id'
+SIGNATURE_BOX_ID = 'signature'
+
+BOX_TYPES = [
+    'mcq',
+    'ma',
+    'mdd',
+    NAME_BOX_ID,
+    ID_BOX_ID,
+    SIGNATURE_BOX_ID,
+]
+
+EXTEND_BOX_QUESTION_TYPES = [
+    'mcq',
+    'ma',
+    'mdd',
+]
+
 COMPILE_SCRIPT = 'compile-latex.sh'
 
 SP_PER_PT = 65536
@@ -80,8 +99,8 @@ def main():
 
     compile_tex()
 
-    boxes = get_bounding_boxes()
-    upload(course_id, assignment_name, email, password, boxes)
+    boxes, special_boxes = get_bounding_boxes()
+    upload(course_id, assignment_name, email, password, boxes, special_boxes)
 
 def load_secrets():
     if (not os.path.isfile(SECRETS_PATH)):
@@ -104,6 +123,8 @@ def compile_tex():
 def get_bounding_boxes():
     # {<quetion id>: {<part id>: box, ...}, ...}
     boxes = {}
+    # {NAME_BOX_ID: box, ID_BOX_ID: box, SIGNATURE_BOX_ID: box}
+    special_boxes = {}
 
     with open(POS_PATH, 'r') as file:
         for line in file:
@@ -122,32 +143,39 @@ def get_bounding_boxes():
             if (origin != 'bottom-left'):
                 raise ValueError("Unknown bounding box origin: '%s'." % (origin))
 
-            question_index = int(question_index)
+            # Note that the position file and GradeScope use 1-indexed pages.
             page_number = int(page_number)
 
+            if (question_type not in BOX_TYPES):
+                raise ValueError("Unknown content type: '%s'." % (question_type))
+
+            extend_box_right = False
+            if (question_type in EXTEND_BOX_QUESTION_TYPES):
+                extend_box_right = True
+
+            (x1, y1), (x2, y2) = _compute_box(ll_x, ll_y, ur_x, ur_y, page_width, page_height, extend_box_right = extend_box_right)
+
+            if (question_type in [NAME_BOX_ID, ID_BOX_ID, SIGNATURE_BOX_ID]):
+                # These boxes are special.
+                if (question_type in special_boxes):
+                    raise ValueError("Multiple %s bounding boxes found." % (question_type))
+
+                special_boxes[question_type] = {
+                    'page_number': page_number,
+                    'x1': x1,
+                    'y1': y1,
+                    'x2': x2,
+                    'y2': y2,
+                }
+
+                continue
+
+            question_index = int(question_index)
             if (question_index not in range(len(QUESTIONS))):
                 raise ValueError("Index from position file (%d) not in question question_index range." % (question_index))
 
-            if (question_type not in ['mcq', 'ma', 'mdd']):
-                raise ValueError("Unknown content type: '%s'." % (question_type))
-
             if (question_index not in boxes):
                 boxes[question_index] = {}
-
-            ll_x = float(ll_x.removesuffix('sp'))
-            ll_y = float(ll_y.removesuffix('sp'))
-            ur_x = float(ur_x.removesuffix('sp'))
-            ur_y = float(ur_y.removesuffix('sp'))
-
-            page_width = float(page_width.removesuffix('pt')) * SP_PER_PT
-            page_height = float(page_height.removesuffix('pt')) * SP_PER_PT
-
-            # Origin is upper-left, point 1 is upper-left, point 2 is lower-right.
-            x1 = round(100.0 * (ll_x / page_width), 1)
-            y1 = round(100.0 * (1.0 - (ur_y / page_height)), 1)
-            # The lower right x should always extend (at least) to the end of the page (to capture the answers).
-            x2 = round(max(95.0, 100.0 * (ur_x / page_width), 1))
-            y2 = round(100.0 * (1.0 - (ll_y / page_height)), 1)
 
             # If there is an existing box, extend it.
             if (part_id in boxes[question_index]):
@@ -168,7 +196,6 @@ def get_bounding_boxes():
                 y2 = max(y2, old_y2)
 
             boxes[question_index][part_id] = {
-                # Note that the position file and GradeScope use 1-indexed pages.
                 'page_number': page_number,
                 'x1': x1,
                 'y1': y1,
@@ -176,9 +203,31 @@ def get_bounding_boxes():
                 'y2': y2,
             }
 
-    return boxes
+    return boxes, special_boxes
 
-def create_outline(bounding_boxes):
+def _compute_box(ll_x, ll_y, ur_x, ur_y, page_width, page_height, extend_box_right = False):
+    ll_x = float(ll_x.removesuffix('sp'))
+    ll_y = float(ll_y.removesuffix('sp'))
+    ur_x = float(ur_x.removesuffix('sp'))
+    ur_y = float(ur_y.removesuffix('sp'))
+
+    page_width = float(page_width.removesuffix('pt')) * SP_PER_PT
+    page_height = float(page_height.removesuffix('pt')) * SP_PER_PT
+
+    # Origin is upper-left, point 1 is upper-left, point 2 is lower-right.
+    x1 = round(100.0 * (ll_x / page_width), 1)
+    y1 = round(100.0 * (1.0 - (ur_y / page_height)), 1)
+    # The lower right x should always extend (at least) to the end of the page (to capture the answers).
+    x2 = round(100.0 * (ur_x / page_width), 1)
+    y2 = round(100.0 * (1.0 - (ll_y / page_height)), 1)
+
+    if (extend_box_right):
+        # In some question types, we want to extend (at least) to the end of the page (to capture the answers).
+        x2 = max(95.0, x2)
+
+    return (x1, y1), (x2, y2)
+
+def create_outline(bounding_boxes, special_boxes):
     question_data = []
     for (question_index, parts) in bounding_boxes.items():
         if (len(parts) == 1):
@@ -206,11 +255,19 @@ def create_outline(bounding_boxes):
                 'children': children,
             })
 
+    name_box = None
+    if (NAME_BOX_ID in special_boxes):
+        name_box = special_boxes[NAME_BOX_ID]
+
+    id_box = None
+    if (ID_BOX_ID in special_boxes):
+        id_box = special_boxes[ID_BOX_ID]
+
     outline = {
         'assignment': {
             'identification_regions': {
-                'name': None,
-                'sid': None
+                'name': name_box,
+                'sid': id_box
             }
         },
         'question_data': question_data,
@@ -218,8 +275,8 @@ def create_outline(bounding_boxes):
 
     return outline
 
-def upload(course_id, assignment_name, email, password, bounding_boxes):
-    outline = create_outline(bounding_boxes)
+def upload(course_id, assignment_name, email, password, bounding_boxes, special_boxes):
+    outline = create_outline(bounding_boxes, special_boxes)
     print(json.dumps(outline, indent = 4))
 
     session = requests.Session()

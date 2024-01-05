@@ -10,6 +10,7 @@
 \usepackage{multicol}
 \usepackage{tikz}
 \usepackage{upquote}
+\usepackage{xparse}
 \usepackage{zref-abspage}
 \usepackage{zref-savepos}
 \usepackage{zref-user}
@@ -28,7 +29,7 @@
 % Make a checkbox for multiple choice questions and record the bounding boxes to the positions file.
 % Args: {type identifier}[question id][part id][answer id]
 \newcommand{\mcqCheckbox}[4][mcq]{%
-    \begin{tikzpicture}[color=black, line width=0.2mm]
+    \begin{tikzpicture}[color=black, line width=0.4mm]
         \fill[transparent] (0mm,0mm)
             node {\zsavepos{#2-#3-#4-ll}}
             rectangle (6mm,6mm)
@@ -50,7 +51,7 @@
 % Make a checkbox for multiple answer questions and record the bounding boxes to the positions file.
 % Args: {type identifier}[question id][part id][answer id]
 \newcommand{\maCheckbox}[4][ma]{%
-    \begin{tikzpicture}[color=black, line width=0.2mm]
+    \begin{tikzpicture}[color=black, line width=0.4mm]
         \fill[transparent] (0mm,0mm)
             node {\zsavepos{#2-#3-#4-ll}}
             rectangle (6mm,6mm)
@@ -64,6 +65,28 @@
         \arabic{abspage},%
         \zposx{#2-#3-#4-ll}sp,\zposy{#2-#3-#4-ll}sp,%
         \zposx{#2-#3-#4-ur}sp,\zposy{#2-#3-#4-ur}sp,%
+        \the\paperwidth,\the\paperheight,%
+        bottom-left%
+    } \relax %
+}
+
+% Make a general answer box and record the bounding boxes to the positions file.
+% Args: {height}[type identifier][question id][part id][answer id]
+\NewDocumentCommand{\answerBox} { O{2cm} O{1.0} m m m m }{%
+    \begin{tikzpicture}[color=black, line width=0.4mm]
+        \fill[transparent] (0mm, 0mm)
+            node {\zsavepos{#4-#5-#6-ll}}
+            rectangle (#2 \textwidth, #1)
+            node {\zsavepos{#4-#5-#6-ur}};
+        \draw (0.5mm,0.5mm)
+            rectangle (#2 \textwidth - 0.5mm, #1 - 0.5mm);
+    \end{tikzpicture} %
+    \write\positionOutput{%
+        #4,#5,#6,%
+        #3,%
+        \arabic{abspage},%
+        \zposx{#4-#5-#6-ll}sp,\zposy{#4-#5-#6-ll}sp,%
+        \zposx{#4-#5-#6-ur}sp,\zposy{#4-#5-#6-ur}sp,%
         \the\paperwidth,\the\paperheight,%
         bottom-left%
     } \relax %
@@ -103,11 +126,13 @@ This quiz is open note, open book, and open world. Assume all regular expression
 
 \vspace{1.0cm}
 
-\makebox[\textwidth]{Name:\enspace\hrulefill}
+\begin{tabular}{ m{1.5cm} m{4cm} }
+    Name: & \answerBox[4em][0.70]{name}{name}{0}{0} \\
+\end{tabular}
 
-\vspace{1.0cm}
-
-\makebox[\textwidth]{Email:\enspace\hrulefill}
+\begin{tabular}{ m{1.5cm} m{4cm} }
+    Email: & \answerBox[4em][0.70]{id}{email}{0}{0} \\
+\end{tabular}
 
 \vspace{0.5cm}
 
@@ -117,7 +142,9 @@ I acknowledge that I have neither given nor received inappropriate help on this 
 
 \vspace{1.0cm}
 
-\makebox[\textwidth]{Signature:\enspace\hrulefill}
+\begin{tabular}{ m{1.5cm} m{4cm} }
+    Signature: & \answerBox[4em][0.70]{signature}{signature}{0}{0} \\
+\end{tabular}
 
 \newpage
 
