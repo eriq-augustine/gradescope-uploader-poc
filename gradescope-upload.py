@@ -29,12 +29,13 @@ SIGNATURE_BOX_ID = 'signature'
 MANUAL_GRADING_BOX_ID = 'manual_grading'
 
 EXTEND_BOX_QUESTION_TYPES = [
-    'mcq',
     'ma',
+    'mcq',
     'mdd',
 ]
 
 STANDARD_BOX_QUESTION_TYPES = [
+    'fimb',
     'matching',
 ]
 
