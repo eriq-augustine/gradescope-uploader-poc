@@ -38,6 +38,7 @@ STANDARD_BOX_QUESTION_TYPES = [
     'essay',
     'fimb',
     'matching',
+    'sa',
 ]
 
 SPECIAL_QUESTION_TYPES = [
