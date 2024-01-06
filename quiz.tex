@@ -114,6 +114,15 @@
     } \relax %
 }
 
+\newdimen\remainingheight
+\newcommand*{\calcremainingheight}{%
+    \ifdim\pagegoal=\maxdimen
+        \remainingheight\dimexpr\textheight-0.4pt\relax
+    \else
+        \remainingheight\dimexpr\pagegoal-\pagetotal-\lineskip-0.4pt\relax
+    \fi
+}
+
 % Write positions to <job>.pos .
 \newwrite\positionOutput
 \openout\positionOutput=\jobname.pos\relax
@@ -510,7 +519,6 @@ def create_csv_line(text_line):
 
 %%% BEGIN Question {10 -- Write a Function} %%%
 % Question Type: Essay
-% TODO
 
 \begin{minipage}{\textwidth}
     \noindent
@@ -544,10 +552,15 @@ def compute(text):
         \item Operands may be any real number.
     \end{itemize}
 
-    \vspace{0.5cm}
+    \vspace{0.25cm}
+    Place your answer within the boxed region on the next page.
+    \vspace{0.25cm}
 
-    % TEST
-    \vspace{10cm}
+\end{minipage}
+\newpage
+\begin{minipage}{\textwidth}
+    \calcremainingheight
+    \bigAnswerBox[\remainingheight]{essay}{9}{0}{0}
 
 \end{minipage}
 
