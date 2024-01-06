@@ -70,9 +70,9 @@
     } \relax %
 }
 
-% Make a general answer box and record the bounding boxes to the positions file.
-% Args: {height}[type identifier][question id][part id][answer id]
-\NewDocumentCommand{\answerBox} { O{2cm} O{1.0} m m m m }{%
+% Make a general large answer box and record the bounding boxes to the positions file.
+% Args: {height}{length modifier (modifies \textwidth)}[type identifier][question id][part id][answer id]
+\NewDocumentCommand{\bigAnswerBox} { O{2cm} O{1.0} m m m m }{%
     \begin{tikzpicture}[color=black, line width=0.4mm]
         \fill[transparent] (0mm, 0mm)
             node {\zsavepos{#4-#5-#6-ll}}
@@ -80,6 +80,28 @@
             node {\zsavepos{#4-#5-#6-ur}};
         \draw (0.5mm,0.5mm)
             rectangle (#2 \textwidth - 0.5mm, #1 - 0.5mm);
+    \end{tikzpicture} %
+    \write\positionOutput{%
+        #4,#5,#6,%
+        #3,%
+        \arabic{abspage},%
+        \zposx{#4-#5-#6-ll}sp,\zposy{#4-#5-#6-ll}sp,%
+        \zposx{#4-#5-#6-ur}sp,\zposy{#4-#5-#6-ur}sp,%
+        \the\paperwidth,\the\paperheight,%
+        bottom-left%
+    } \relax %
+}
+
+% Make a general answer box and record the bounding boxes to the positions file.
+% Args: {height}{length}[type identifier][question id][part id][answer id]
+\NewDocumentCommand{\smallAnswerBox} { O{1cm} O{1cm} m m m m }{%
+    \begin{tikzpicture}[color=black, line width=0.4mm]
+        \fill[transparent] (0mm, 0mm)
+            node {\zsavepos{#4-#5-#6-ll}}
+            rectangle (#2, #1)
+            node {\zsavepos{#4-#5-#6-ur}};
+        \draw (0.5mm,0.5mm)
+            rectangle (#2 - 0.5mm, #1 - 0.5mm);
     \end{tikzpicture} %
     \write\positionOutput{%
         #4,#5,#6,%
@@ -127,11 +149,11 @@ This quiz is open note, open book, and open world. Assume all regular expression
 \vspace{1.0cm}
 
 \begin{tabular}{ m{1.5cm} m{4cm} }
-    Name: & \answerBox[4em][0.70]{name}{name}{0}{0} \\
+    Name: & \bigAnswerBox[4em][0.70]{name}{name}{0}{0} \\
 \end{tabular}
 
 \begin{tabular}{ m{1.5cm} m{4cm} }
-    Email: & \answerBox[4em][0.70]{id}{email}{0}{0} \\
+    Email: & \bigAnswerBox[4em][0.70]{id}{email}{0}{0} \\
 \end{tabular}
 
 \vspace{0.5cm}
@@ -143,7 +165,7 @@ I acknowledge that I have neither given nor received inappropriate help on this 
 \vspace{1.0cm}
 
 \begin{tabular}{ m{1.5cm} m{4cm} }
-    Signature: & \answerBox[4em][0.70]{signature}{signature}{0}{0} \\
+    Signature: & \bigAnswerBox[4em][0.70]{signature}{signature}{0}{0} \\
 \end{tabular}
 
 Fill in the box below if you believe your exam requires manual grading,
@@ -165,7 +187,9 @@ e.g., you crossed out answers or needed space outside a designated answer box. \
     \noindent
     Regular expressions are implemented as either a core feature or in the standard library of almost every major programming language.
 
-    \vspace{0.5cm}
+    \vspace{0.25cm}
+    Fill in the one circle that corresponds to your answer.
+    \vspace{0.25cm}
 
     \begin{tabular}{ m{10mm} l }
         \mcqCheckbox{0}{0}{0} & True \\
@@ -189,39 +213,32 @@ e.g., you crossed out answers or needed space outside a designated answer box. \
     \noindent
     Match the following terms to their corresponding definitions.
 
-    \vspace{0.5cm}
+    \vspace{0.25cm}
+    Fill in the each box on the left with a letter from the right.
+    \vspace{0.25cm}
 
-    % TEST
-    \begin{center}
-        \begin{tabular}{ l c l }
-
-            \vspace{0.2cm}
-
-            \underline{\hspace{1cm}} Character Class & \hspace{0.5cm} & A. A set of character where any single member of the group can be matched. \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Anchor & \hspace{0.5cm} & B. A special character that can be used to match the beginning or end of a line. \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Word Boundary & \hspace{0.5cm} & C. The empty string between (\verb|[\W^]| and \verb|\w|) or between (\verb|\w| and \verb|[\W$]|). \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Kleene Star & \hspace{0.5cm} & D. A repetition operator that matches the range $ [0, infinity] $. \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Group & \hspace{0.5cm} & E. A collection of character that can be treated as a single unit. \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Disjunction & \hspace{0.5cm} & F. An operator that allows us to select one of two options. \\
-            \vspace{0.2cm}
-            \underline{\hspace{1cm}} Back Reference & \hspace{0.5cm} & G. A special character that allows us to invoke a previous group. \\
-            \vspace{0.2cm}
-            & \hspace{0.5cm} & H. The set of all alphanumeric characters and underscore. \\
-            \vspace{0.2cm}
-            & \hspace{0.5cm} & I. All digits. \\
-            \vspace{0.2cm}
-            & \hspace{0.5cm} & J. A repetition operator that matches the range $ [1, infinity] $. \\
-            \vspace{0.2cm}
-            & \hspace{0.5cm} & K. An operator that allows us to select both of two options. \\
-            \vspace{0.2cm}
-
-        \end{tabular}
-    \end{center}
+    \begin{tabular}{ m{10mm} p{25mm} }
+        \smallAnswerBox{matching}{1}{0}{0} & \vspace{-0.5cm} Character Class \\
+        \smallAnswerBox{matching}{1}{1}{0} & \vspace{-0.5cm} Anchor \\
+        \smallAnswerBox{matching}{1}{2}{0} & \vspace{-0.5cm} Word Boundary \\
+        \smallAnswerBox{matching}{1}{3}{0} & \vspace{-0.5cm} Kleene Star \\
+        \smallAnswerBox{matching}{1}{4}{0} & \vspace{-0.5cm} Group \\
+        \smallAnswerBox{matching}{1}{5}{0} & \vspace{-0.5cm} Disjunction \\
+        \smallAnswerBox{matching}{1}{6}{0} & \vspace{-0.5cm} Back Reference \\
+    \end{tabular}
+    \begin{tabular}{ p{3mm} p{80mm} }
+        A. & A set of character where any single member of the group can be matched. \\[0.6cm]
+        B. & A special character that can be used to match the beginning or end of a line. \\[0.6cm]
+        C. & The empty string between (\verb|[\W^]| and \verb|\w|) or between (\verb|\w| and \verb|[\W$]|). \\[0.6cm]
+        D. & A repetition operator that matches the range $ [0, infinity] $. \\[0.6cm]
+        E. & A collection of character that can be treated as a single unit. \\[0.6cm]
+        F. & An operator that allows us to select one of two options. \\[0.6cm]
+        G. & A special character that allows us to invoke a previous group. \\[0.6cm]
+        H. & The set of all alphanumeric characters and underscore. \\[0.6cm]
+        I. & All digits. \\[0.6cm]
+        J. & A repetition operator that matches the range $ [1, infinity] $. \\[0.6cm]
+        K. & An operator that allows us to select both of two options. \\[0.6cm]
+    \end{tabular}
 
 \end{minipage}
 
@@ -239,7 +256,10 @@ e.g., you crossed out answers or needed space outside a designated answer box. \
 
     \noindent
     Which of the following regular expressions would be best to match a 10-digit phone number formatted as: '123 456-7890'. (Assume any stretch of continuous whitespace is a single space character.)
-    \vspace{0.5cm}
+
+    \vspace{0.25cm}
+    Fill in the one circle that corresponds to your answer.
+    \vspace{0.25cm}
 
     \begin{tabular}{ m{10mm} l }
         \mcqCheckbox{2}{0}{0} & \verb|r'\d{3} \d{3}-\d{4}'| \\
@@ -333,7 +353,9 @@ r'(age|season|epoch)\s+of\s+(\w+)'
     You want to match the main digits (before any decimal point) for a required number. E.g. "123" for "123". \newline
     \textsc{<PART3>} \newline
 
-    \vspace{0.5cm}
+    \vspace{0.25cm}
+    For each part (denoted by angle brackets), fill in the one circle that corresponds to your answer.
+    \vspace{0.25cm}
 
     \noindent
     PART1: \newline
@@ -374,8 +396,11 @@ r'(age|season|epoch)\s+of\s+(\w+)'
     \vspace{0.5cm}
 
     \noindent
-    Which of the following does the regex \verb|r'Lo{2,3}ng Cat'| match? Select all that apply.
-    \vspace{0.5cm}
+    Which of the following does the regex \verb|r'Lo{2,3}ng Cat'| match?
+
+    \vspace{0.25cm}
+    Fill in all boxes that corresponds to your answers.
+    \vspace{0.25cm}
 
     \begin{tabular}{ m{10mm} l }
         \maCheckbox{6}{0}{0} & Long Cat \\
